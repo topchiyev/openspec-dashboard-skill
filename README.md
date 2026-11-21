@@ -9,17 +9,19 @@ Use Node.js 20.19 or newer, with npm available. On macOS or Linux, clone the rep
 ```sh
 skill_repo="$HOME/openspec-dashboard-skill"
 git clone https://github.com/topchiyev/openspec-dashboard-skill.git "$skill_repo"
-npm ci --ignore-scripts --prefix "$skill_repo/project-dashboard"
+npm ci --ignore-scripts --prefix "$skill_repo/openspec-dashboard"
 mkdir -p "$HOME/.agents/skills"
-ln -s "$skill_repo/project-dashboard" "$HOME/.agents/skills/project-dashboard"
+ln -s "$skill_repo/openspec-dashboard" "$HOME/.agents/skills/openspec-dashboard"
 ```
+
+If you installed an earlier version, stop its running dashboard servers before upgrading and replace the old skill symlink with the one above.
 
 ## Use in Codex
 
 Open a project that contains an `openspec/` directory and ask Codex to show its dashboard. You can invoke the skill explicitly.
 
 ```text
-$project-dashboard Show me the dashboard.
+$openspec-dashboard Show me the dashboard.
 ```
 
 The skill starts a local server when needed and returns its URL. Later requests reuse the running server. Ask Codex to refresh the dashboard after updating the project files or to stop the dashboard when you're done.
@@ -29,7 +31,7 @@ The skill starts a local server when needed and returns its URL. Later requests 
 Run these commands from the root of an OpenSpec project.
 
 ```sh
-skill_dir="$HOME/.agents/skills/project-dashboard"
+skill_dir="$HOME/.agents/skills/openspec-dashboard"
 
 node "$skill_dir/scripts/generate-dashboard.mjs" --project-root "$PWD"
 node "$skill_dir/scripts/serve-dashboard.mjs" serve --project-root "$PWD"
@@ -41,4 +43,4 @@ The default output is `openspec/dashboard.html`, which you can also open directl
 
 The server listens on the machine running the skill. To view it from another device, use a forwarded URL. If your forwarding setup needs a fixed port, pass `--port PORT` when starting the server.
 
-See the [skill instructions](project-dashboard/SKILL.md) and the [OpenSpec requirements](openspec/specs/openspec-dashboard/spec.md) for details.
+See the [skill instructions](openspec-dashboard/SKILL.md) and the [OpenSpec requirements](openspec/specs/openspec-dashboard/spec.md) for details.

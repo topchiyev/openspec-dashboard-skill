@@ -7,11 +7,10 @@ import { homedir, tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
-import { outputMarker, readProject, resolveProject, writeDashboard } from './project.mjs';
+import { isGeneratedDashboard, readProject, resolveProject, writeDashboard } from './project.mjs';
 
 const host = '127.0.0.1';
 const defaultOutput = 'openspec/dashboard.html';
-const marker = Buffer.from(outputMarker);
 
 function controlAddress(root) {
   const key = createHash('sha256').update(JSON.stringify([homedir(), root])).digest('hex').slice(0, 24);
@@ -68,7 +67,7 @@ async function runServer(root, output, port, socketPath) {
     try {
       if (realpathSync(file) !== file) throw new Error('Unexpected dashboard path.');
       const html = readFileSync(file);
-      if (!html.subarray(0, marker.length).equals(marker)) {
+      if (!isGeneratedDashboard(html)) {
         throw new Error('Expected generated dashboard HTML.');
       }
       res.writeHead(200, {
@@ -189,6 +188,6 @@ try {
     }
   }
 } catch (error) {
-  console.error(`Could not manage the OpenSpec dashboard server. ${error.message}`);
+  console.error(`Could not manage the OpenSpec Dashboard server. ${error.message}`);
   process.exitCode = 1;
 }

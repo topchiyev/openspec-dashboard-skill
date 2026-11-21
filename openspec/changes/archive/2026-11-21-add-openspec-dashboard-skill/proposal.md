@@ -2,11 +2,11 @@
 
 ## Why
 
-OpenSpec keeps project specifications, changes, and implementation tasks across many Markdown files. A reusable Codex skill can turn those files into a browsable project dashboard that people can open offline, view through a local web link, and refresh whenever they need a current view.
+OpenSpec keeps project specifications, changes, and implementation tasks across many Markdown files. The OpenSpec Dashboard skill can turn those files into a browsable dashboard that people can open offline, view through a local web link, and refresh whenever they need a current view.
 
 ## What Changes
 
-- Add a reusable Project Dashboard skill that can be installed for a Codex user and used in multiple OpenSpec repositories.
+- Add the reusable OpenSpec Dashboard skill, which can be installed for a Codex user and used in multiple OpenSpec repositories.
 - Generate one self-contained HTML dashboard with a responsive overview, task progress, active and archived changes, and rendered specifications and change documents.
 - Support requests such as “Update dashboard” to regenerate the current project's dashboard and return its path.
 - Start or reuse a local dashboard server when the user asks to see the dashboard. Support checking and stopping that server.
@@ -16,7 +16,7 @@ OpenSpec keeps project specifications, changes, and implementation tasks across 
 
 ### New Capabilities
 
-- `openspec-dashboard` covers generating, browsing, refreshing, and serving a static OpenSpec dashboard for a selected project.
+- `openspec-dashboard` covers generating, browsing, refreshing, and serving a static OpenSpec Dashboard for a selected project.
 
 ### Modified Capabilities
 

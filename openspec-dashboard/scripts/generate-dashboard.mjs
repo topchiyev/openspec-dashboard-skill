@@ -20,6 +20,6 @@ try {
     console.log(project.output);
   }
 } catch (error) {
-  console.error(`Could not generate the OpenSpec dashboard. ${error.message}`);
+  console.error(`Could not generate the OpenSpec Dashboard. ${error.message}`);
   process.exitCode = 1;
 }

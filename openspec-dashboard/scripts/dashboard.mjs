@@ -96,14 +96,14 @@ export function renderDashboard(project, source) {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
-  <title>${projectName} · OpenSpec dashboard</title>
+  <title>${projectName} · OpenSpec Dashboard</title>
   <style>${asset('dashboard.css')}</style>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
   <header class="topbar">
     <div class="frame topbar-inner">
-      <a class="brand" href="#overview">OpenSpec dashboard</a>
+      <a class="brand" href="#overview">OpenSpec Dashboard</a>
       <nav aria-label="Dashboard sections">
         <a href="#active-changes">Changes</a>
         <a href="#specifications">Specs</a>

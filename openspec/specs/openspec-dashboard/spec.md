@@ -1,4 +1,4 @@
-# openspec-dashboard Specification
+# OpenSpec Dashboard
 
 ## Purpose
 
