@@ -38,12 +38,13 @@ The dashboard SHALL show current specifications, active changes, and archived ch
 - **THEN** the dashboard SHALL show readable empty states for the corresponding sections
 
 ### Requirement: Provide a readable project overview
-The dashboard SHALL provide a clear visual hierarchy and readable layouts on desktop and mobile widths. Users SHALL be able to find documents by title or path and navigate the dashboard with a keyboard. The overview SHALL show the project title and summary counts in a compact header above document search. Entries in the Changes, Specifications, and Archived Changes sections SHALL display only the linked item name.
+The dashboard SHALL provide a clear visual hierarchy and readable layouts on desktop and mobile widths. Users SHALL be able to find documents by title or path and navigate the dashboard with a keyboard. The overview SHALL show the project title and summary counts in a compact header above document search. Changes SHALL show each linked name with its task progress. Specifications and Archived Changes SHALL display only linked item names.
 
 #### Scenario: Open an active or archived change from the overview
 - **WHEN** the user views the Changes or Archived Changes section
-- **THEN** each entry SHALL contain only the change name as a link
-- **AND** following that link SHALL open the change's Proposal page
+- **THEN** each change name SHALL link to its Proposal page
+- **AND** each active change entry SHALL show the completed and total task counts beside its link, or a message when it has no tasks
+- **AND** each archived change entry SHALL show only the linked change name
 
 #### Scenario: Open a specification from the overview
 - **WHEN** the user views the Specifications section

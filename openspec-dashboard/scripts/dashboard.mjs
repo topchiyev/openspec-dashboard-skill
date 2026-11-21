@@ -7,9 +7,9 @@ function asset(name) {
   return readFileSync(new URL(`../assets/${name}`, import.meta.url), 'utf8');
 }
 
-function linkItem({ id, title }, anchor) {
+function linkItem({ id, title }, anchor, detail = '') {
   const attributes = anchor ? ` id="${anchor}" tabindex="-1"` : '';
-  return `<li class="document-link"${attributes}><a href="${fragment(id)}">${escapeHtml(title)}</a></li>`;
+  return `<li class="document-link"${attributes}><a href="${fragment(id)}">${escapeHtml(title)}</a>${detail}</li>`;
 }
 
 function overviewList(items) {
@@ -20,11 +20,12 @@ function groupId(path) {
   return `group-${Buffer.from(path).toString('base64url')}`;
 }
 
-function taskProgress({ totalTasks, completedTasks }) {
-  if (!totalTasks) return '<div class="progress">No tasks listed</div>';
+function taskProgress(tasks, label = 'Tasks complete') {
+  if (!tasks?.totalTasks) return '<div class="progress">No tasks listed</div>';
+  const { totalTasks, completedTasks } = tasks;
   return `<div class="progress">
     <span>${completedTasks} / ${totalTasks} tasks complete</span>
-    <progress max="${totalTasks}" value="${completedTasks}" aria-label="Tasks complete"></progress>
+    <progress max="${totalTasks}" value="${completedTasks}" aria-label="${escapeHtml(label)}"></progress>
   </div>`;
 }
 
@@ -137,7 +138,9 @@ export function renderDashboard(project, source) {
   const taskDocuments = changes.map(change => change.tasks).filter(Boolean);
   const completedTasks = taskDocuments.reduce((total, document) => total + document.completedTasks, 0);
   const totalTasks = taskDocuments.reduce((total, document) => total + document.totalTasks, 0);
-  const changeLink = change => linkItem({ id: change.proposalId, title: change.name }, change.id);
+  const changeLink = (change, detail) => linkItem({ id: change.proposalId, title: change.name }, change.id, detail);
+  const activeChangeLinks = changes.map(change =>
+    changeLink(change, taskProgress(change.tasks, `Tasks complete for ${change.name}`)));
   const documentViews = Array.from(documents.values(), document => {
     const change = changeByDocument.get(document);
     const sectionId = change?.deltaSpecs.includes(document) ? change.deltaId : document.id;
@@ -200,11 +203,11 @@ export function renderDashboard(project, source) {
       <div id="dashboard-sections">
         ${overview ? overviewList([linkItem(overview)]) : ''}
         ${section('active-changes', 'Active changes',
-          overviewList(changes.map(changeLink)), 'No active changes.')}
+          overviewList(activeChangeLinks), 'No active changes.')}
         ${section('specifications', 'Specifications',
           overviewList(specificationLinks), 'No specification documents.')}
         ${section('archive', 'Archived changes',
-          overviewList(archives.map(changeLink)), 'No archived changes.')}
+          overviewList(archives.map(change => changeLink(change))), 'No archived changes.')}
       </div>
     </div>
     ${[...documentViews, ...landingPages].join('\n')}

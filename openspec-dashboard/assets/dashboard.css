@@ -263,7 +263,6 @@ main.frame { padding-block: clamp(1.25rem, 4vw, 3rem) 4rem; }
   flex-wrap: wrap;
   align-items: center;
   gap: .65rem;
-  margin-block-start: .65rem;
   color: var(--muted);
   font-size: .85rem;
   font-variant-numeric: tabular-nums;
@@ -281,6 +280,7 @@ progress { width: 4rem; height: .6rem; accent-color: var(--accent); }
 
 .document-link a { padding-block: .2rem; }
 .document-link[id] { scroll-margin-top: 1rem; }
+#active-changes .document-link { align-items: center; }
 .document-path, .document-location { color: var(--muted); font-size: .82rem; }
 .empty { margin: .25rem 0 0; color: var(--muted); }
 
@@ -300,6 +300,8 @@ progress { width: 4rem; height: .6rem; accent-color: var(--accent); }
   padding-bottom: .85rem;
   border-bottom: 1px solid var(--border);
 }
+
+.document-header .progress { margin-block-start: .65rem; }
 
 .document-location {
   inline-size: fit-content;
