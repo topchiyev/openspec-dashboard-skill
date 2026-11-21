@@ -4,7 +4,11 @@ const sections = document.getElementById('dashboard-sections');
 const search = document.getElementById('document-search');
 const searchResults = document.getElementById('search-results');
 const searchStatus = document.getElementById('search-status');
-const documentLinks = Array.from(document.querySelectorAll('[data-document-link] a'));
+const documents = Array.from(document.querySelectorAll('[data-document][data-path]'), view => ({
+  id: view.id,
+  title: view.getAttribute('aria-label'),
+  path: view.dataset.path
+}));
 let activeDocument;
 
 function updateScrollPadding() {
@@ -19,17 +23,19 @@ function updateSearch() {
   searchStatus.textContent = '';
   if (!query) return;
 
-  const matches = documentLinks.filter(link =>
-    link.dataset.title.toLocaleLowerCase().includes(query) ||
-    link.dataset.path.toLocaleLowerCase().includes(query)
+  const matches = documents.filter(entry =>
+    entry.title.toLocaleLowerCase().includes(query) ||
+    entry.path.toLocaleLowerCase().includes(query)
   );
-  for (const link of matches) {
+  for (const entry of matches) {
     const item = document.createElement('li');
     item.className = 'document-link';
-    const result = link.cloneNode(true);
+    const result = document.createElement('a');
+    result.href = `#${encodeURIComponent(entry.id)}`;
+    result.textContent = entry.title;
     const path = document.createElement('span');
     path.className = 'document-path';
-    path.textContent = link.dataset.path;
+    path.textContent = entry.path;
     item.append(result, path);
     searchResults.append(item);
   }

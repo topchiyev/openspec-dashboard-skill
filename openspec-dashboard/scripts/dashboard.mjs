@@ -1,38 +1,31 @@
 import { readFileSync } from 'node:fs';
 import { relative, sep } from 'node:path';
-import { escapeHtml, fragment, parseDocument, renderDocument } from './markdown.mjs';
+import { documentId, escapeHtml, fragment, parseDocument, renderDocument } from './markdown.mjs';
 import { outputMarker } from './project.mjs';
 
 function asset(name) {
   return readFileSync(new URL(`../assets/${name}`, import.meta.url), 'utf8');
 }
 
-function documentLink(document, showPath = false) {
-  const title = escapeHtml(document.title);
-  const path = escapeHtml(document.path);
-  return `<li class="document-link" data-document-link>
-    <a href="${fragment(document.id)}" data-title="${title}" data-path="${path}">${title}</a>
-    ${showPath ? `<span class="document-path">${path}</span>` : ''}
-  </li>`;
+function linkItem({ id, title }, anchor) {
+  const attributes = anchor ? ` id="${anchor}" tabindex="-1"` : '';
+  return `<li class="document-link"${attributes}><a href="${fragment(id)}">${escapeHtml(title)}</a></li>`;
 }
 
-function groupMarkup(group, withProgress) {
-  const tasks = group.documents.find(document => document.path === `${group.path}/tasks.md`);
-  const total = tasks?.totalTasks ?? 0;
-  const completed = tasks?.completedTasks ?? 0;
-  const progress = total
-    ? `<div class="progress">
-         <span>${completed} / ${total} tasks complete</span>
-         <progress max="${total}" value="${completed}" aria-label="Tasks complete"></progress>
-       </div>`
-    : '<div class="progress">No tasks listed</div>';
-  const title = escapeHtml(group.name);
-  return `<li class="group" id="${group.id}" data-group tabindex="-1">
-    <div class="group-heading"><h3>${title}</h3>${withProgress ? progress : ''}</div>
-    ${group.documents.length
-      ? `<ul class="document-list">${group.documents.map(document => documentLink(document)).join('\n')}</ul>`
-      : '<p class="empty">No Markdown documents.</p>'}
-  </li>`;
+function overviewList(items) {
+  return items.length ? `<ul class="document-list overview-link">${items.join('\n')}</ul>` : '';
+}
+
+function groupId(path) {
+  return `group-${Buffer.from(path).toString('base64url')}`;
+}
+
+function taskProgress({ totalTasks, completedTasks }) {
+  if (!totalTasks) return '<div class="progress">No tasks listed</div>';
+  return `<div class="progress">
+    <span>${completedTasks} / ${totalTasks} tasks complete</span>
+    <progress max="${totalTasks}" value="${completedTasks}" aria-label="Tasks complete"></progress>
+  </div>`;
 }
 
 function section(id, title, content, emptyText) {
@@ -46,66 +39,117 @@ function statistic(value, label) {
   return `<div class="statistic"><dt>${label}</dt><dd>${value}</dd></div>`;
 }
 
-function changeNavigation(document, siblings) {
-  if (!siblings || siblings.length < 2) return '';
-
-  const links = siblings.map(sibling => {
-    const current = sibling === document ? ' aria-current="page"' : '';
-    return `<li><a href="${fragment(sibling.id)}"${current}>${escapeHtml(sibling.title)}</a></li>`;
+function changeNavigation(change, pageId, sectionId = pageId) {
+  const links = change.links.map(link => {
+    const current = link.id === sectionId ? ` aria-current="${link.id === pageId ? 'page' : 'location'}"` : '';
+    return `<li><a href="${fragment(link.id)}"${current}>${link.title}</a></li>`;
   });
   return `<nav class="change-navigation" aria-label="Change documents">
         <ul class="document-list">${links.join('\n')}</ul>
       </nav>`;
 }
 
+function pageMarkup({ id, title, path, navigation = '', progress = '', content }) {
+  const escapedPath = path && escapeHtml(path);
+  return `
+    <article class="document-view" id="${id}" data-document${escapedPath ? ` data-path="${escapedPath}"` : ''}
+      hidden tabindex="-1" aria-label="${escapeHtml(title)}">
+      <header class="document-header">
+        ${escapedPath ? `<p class="document-location">${escapedPath}</p>` : ''}
+        ${navigation}
+        ${progress}
+      </header>
+      <div class="markdown">${content}</div>
+    </article>`;
+}
+
+function changeLandingPages(change) {
+  const pages = [];
+  if (!change.proposal) {
+    pages.push(pageMarkup({
+      id: change.proposalId,
+      title: 'Proposal',
+      navigation: changeNavigation(change, change.proposalId),
+      content: '<h1>Proposal</h1><p>No proposal is available for this change.</p>'
+    }));
+  }
+  if (change.deltaId) {
+    pages.push(pageMarkup({
+      id: change.deltaId,
+      title: 'Delta specs',
+      navigation: changeNavigation(change, change.deltaId),
+      content: `<h1>Delta specs</h1><ul class="delta-spec-list">${change.deltaSpecs.map(spec => linkItem(spec)).join('\n')}</ul>`
+    }));
+  }
+  return pages;
+}
+
 export function renderDashboard(project, source) {
   const documents = new Map();
   const groups = new Map();
+  const changeByDocument = new Map();
+
   function addDocument(rawDocument) {
     const document = parseDocument(rawDocument);
     documents.set(document.path, document);
     return document;
   }
-  function addGroup(rawGroup) {
-    const id = `group-${Buffer.from(rawGroup.path).toString('base64url')}`;
-    const group = { ...rawGroup, id, documents: rawGroup.documents.map(addDocument) };
+
+  function addChange(group) {
+    const id = groupId(group.path);
+    const changeDocuments = group.documents.map(addDocument);
+    const proposalPath = `${group.path}/proposal.md`;
+    const proposal = documents.get(proposalPath);
+    const proposalId = documentId(proposalPath);
+    const design = documents.get(`${group.path}/design.md`);
+    const tasks = documents.get(`${group.path}/tasks.md`);
+    const deltaPath = `${group.path}/specs`;
+    const deltaSpecs = changeDocuments.filter(document => document.path.startsWith(`${deltaPath}/`));
+    const deltaId = deltaSpecs.length ? `delta-specs-${id}` : '';
+    const links = [
+      { title: 'Proposal', id: proposalId },
+      { title: 'Delta specs', id: deltaId },
+      { title: 'Design', id: design?.id },
+      { title: 'Tasks', id: tasks?.id }
+    ].filter(link => link.id);
+    const change = { id, name: group.name, proposal, proposalId, tasks, deltaId, deltaSpecs, links };
     groups.set(group.path, id);
-    return group;
+    if (deltaId) groups.set(deltaPath, deltaId);
+    for (const document of changeDocuments) changeByDocument.set(document, change);
+    return change;
   }
 
   const overview = source.overview && addDocument(source.overview);
-  const standaloneSpecifications = source.topLevelSpecifications.map(addDocument);
-  const specificationGroups = source.specificationGroups.map(addGroup);
-  const changes = source.changes.map(addGroup);
-  const archives = source.archives.map(addGroup);
-  const changeDocuments = new Map();
-  for (const change of [...changes, ...archives]) {
-    for (const document of change.documents) changeDocuments.set(document.path, change.documents);
+  const specificationLinks = source.topLevelSpecifications.map(document => linkItem(addDocument(document)));
+  for (const group of source.specificationGroups) {
+    if (!group.documents.length) continue;
+    const id = groupId(group.path);
+    groups.set(group.path, id);
+    for (const [index, document] of group.documents.entries()) {
+      specificationLinks.push(linkItem(addDocument(document), index === 0 ? id : undefined));
+    }
   }
+  const changes = source.changes.map(addChange);
+  const archives = source.archives.map(addChange);
   const outputPath = relative(project.root, project.output).split(sep).join('/');
   const projectName = escapeHtml(project.name);
 
-  const taskDocuments = changes.flatMap(change => change.documents
-    .filter(document => document.path === `${change.path}/tasks.md`));
+  const taskDocuments = changes.map(change => change.tasks).filter(Boolean);
   const completedTasks = taskDocuments.reduce((total, document) => total + document.completedTasks, 0);
   const totalTasks = taskDocuments.reduce((total, document) => total + document.totalTasks, 0);
-  const specificationCount = standaloneSpecifications.length
-    + specificationGroups.reduce((total, group) => total + group.documents.length, 0);
-  const activeList = changes.map(group => groupMarkup(group, true)).join('\n');
-  const specificationList = specificationGroups.map(group => groupMarkup(group, false)).join('\n');
-  const archiveList = archives.map(group => groupMarkup(group, false)).join('\n');
-  const documentViews = Array.from(documents.values(), document => `
-    <article class="document-view" id="${document.id}" data-document hidden tabindex="-1"
-      aria-label="${escapeHtml(document.title)}">
-      <header class="document-header">
-        <p class="document-location">${escapeHtml(document.path)}</p>
-        ${changeNavigation(document, changeDocuments.get(document.path))}
-      </header>
-      <div class="markdown">
-        ${document.headings.size ? '' : `<h1>${escapeHtml(document.title)}</h1>`}
-        ${renderDocument(document, documents, groups, outputPath)}
-      </div>
-    </article>`).join('\n');
+  const changeLink = change => linkItem({ id: change.proposalId, title: change.name }, change.id);
+  const documentViews = Array.from(documents.values(), document => {
+    const change = changeByDocument.get(document);
+    const sectionId = change?.deltaSpecs.includes(document) ? change.deltaId : document.id;
+    const heading = document.headings.size ? '' : `<h1>${escapeHtml(document.title)}</h1>`;
+    return pageMarkup({
+      ...document,
+      navigation: change ? changeNavigation(change, document.id, sectionId) : '',
+      progress: change?.tasks === document ? taskProgress(document) : '',
+      content: heading + renderDocument(document, documents, groups, outputPath)
+    });
+  });
+  const landingPages = [...changes, ...archives].flatMap(changeLandingPages);
 
   return `${outputMarker}
 <!doctype html>
@@ -143,7 +187,7 @@ export function renderDashboard(project, source) {
         <dl class="statistics">
           ${statistic(changes.length, 'Active changes')}
           ${statistic(`${completedTasks} / ${totalTasks}`, 'Active tasks complete')}
-          ${statistic(specificationCount, 'Specification documents')}
+          ${statistic(specificationLinks.length, 'Specification documents')}
           ${statistic(archives.length, 'Archived changes')}
         </dl>
       </header>
@@ -154,18 +198,16 @@ export function renderDashboard(project, source) {
         <ul class="document-list search-results" id="search-results" hidden></ul>
       </section>
       <div id="dashboard-sections">
-        ${overview ? `<ul class="document-list overview-link">${documentLink(overview)}</ul>` : ''}
+        ${overview ? overviewList([linkItem(overview)]) : ''}
         ${section('active-changes', 'Active changes',
-          activeList && `<ul class="groups">${activeList}</ul>`, 'No active changes.')}
+          overviewList(changes.map(changeLink)), 'No active changes.')}
         ${section('specifications', 'Specifications',
-          `${standaloneSpecifications.length ? `<ul class="document-list overview-link">${standaloneSpecifications.map(document => documentLink(document, true)).join('\n')}</ul>` : ''}
-          ${specificationList ? `<ul class="groups">${specificationList}</ul>` : ''}`.trim(),
-          'No specification documents.')}
+          overviewList(specificationLinks), 'No specification documents.')}
         ${section('archive', 'Archived changes',
-          archiveList && `<ul class="groups">${archiveList}</ul>`, 'No archived changes.')}
+          overviewList(archives.map(changeLink)), 'No archived changes.')}
       </div>
     </div>
-    ${documentViews}
+    ${[...documentViews, ...landingPages].join('\n')}
   </main>
   <script>${asset('dashboard.js')}</script>
 </body>

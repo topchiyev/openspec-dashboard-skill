@@ -5,6 +5,7 @@ import MarkdownIt from 'markdown-it';
 const markdown = new MarkdownIt({ html: false });
 export const escapeHtml = markdown.utils.escapeHtml;
 export const fragment = id => `#${encodeURIComponent(id)}`;
+export const documentId = path => `document-${Buffer.from(path).toString('base64url')}`;
 
 function inlineText(tokens) {
   return tokens.map(token => {
@@ -42,7 +43,7 @@ function styleScenarioStep(item, inline) {
 export function parseDocument(document) {
   const environment = {};
   const tokens = markdown.parse(document.markdown, environment);
-  const id = `document-${Buffer.from(document.path).toString('base64url')}`;
+  const id = documentId(document.path);
   const headings = new Map();
   const slugger = new GithubSlugger();
   let title;
