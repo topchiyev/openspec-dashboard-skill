@@ -1,3 +1,4 @@
+const topbar = document.querySelector('.topbar');
 const overview = document.getElementById('overview');
 const sections = document.getElementById('dashboard-sections');
 const search = document.getElementById('document-search');
@@ -5,6 +6,10 @@ const searchResults = document.getElementById('search-results');
 const searchStatus = document.getElementById('search-status');
 const documentLinks = Array.from(document.querySelectorAll('[data-document-link] a'));
 let activeDocument;
+
+function updateScrollPadding() {
+  document.documentElement.style.setProperty('--topbar-height', `${topbar.offsetHeight}px`);
+}
 
 function updateSearch() {
   const query = search.value.trim().toLocaleLowerCase();
@@ -59,5 +64,7 @@ function updateView() {
 
 search.addEventListener('input', updateSearch);
 window.addEventListener('hashchange', updateView);
+updateScrollPadding();
+new ResizeObserver(updateScrollPadding).observe(topbar);
 updateSearch();
 updateView();

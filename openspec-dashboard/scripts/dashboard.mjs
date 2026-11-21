@@ -46,6 +46,18 @@ function statistic(value, label) {
   return `<div class="statistic"><dt>${label}</dt><dd>${value}</dd></div>`;
 }
 
+function changeNavigation(document, siblings) {
+  if (!siblings || siblings.length < 2) return '';
+
+  const links = siblings.map(sibling => {
+    const current = sibling === document ? ' aria-current="page"' : '';
+    return `<li><a href="${fragment(sibling.id)}"${current}>${escapeHtml(sibling.title)}</a></li>`;
+  });
+  return `<nav class="change-navigation" aria-label="Change documents">
+        <ul class="document-list">${links.join('\n')}</ul>
+      </nav>`;
+}
+
 export function renderDashboard(project, source) {
   const documents = new Map();
   const groups = new Map();
@@ -66,6 +78,10 @@ export function renderDashboard(project, source) {
   const specificationGroups = source.specificationGroups.map(addGroup);
   const changes = source.changes.map(addGroup);
   const archives = source.archives.map(addGroup);
+  const changeDocuments = new Map();
+  for (const change of [...changes, ...archives]) {
+    for (const document of change.documents) changeDocuments.set(document.path, change.documents);
+  }
   const outputPath = relative(project.root, project.output).split(sep).join('/');
   const projectName = escapeHtml(project.name);
 
@@ -81,8 +97,10 @@ export function renderDashboard(project, source) {
   const documentViews = Array.from(documents.values(), document => `
     <article class="document-view" id="${document.id}" data-document hidden tabindex="-1"
       aria-label="${escapeHtml(document.title)}">
-      <a class="back-link" href="#overview">Back to dashboard</a>
-      <p class="document-location">${escapeHtml(document.path)}</p>
+      <header class="document-header">
+        <p class="document-location">${escapeHtml(document.path)}</p>
+        ${changeNavigation(document, changeDocuments.get(document.path))}
+      </header>
       <div class="markdown">
         ${document.headings.size ? '' : `<h1>${escapeHtml(document.title)}</h1>`}
         ${renderDocument(document, documents, groups, outputPath)}

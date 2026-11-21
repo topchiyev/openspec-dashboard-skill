@@ -13,3 +13,10 @@
 ## 3. Generated dashboard integration
 
 - [x] 3.1 Regenerate a dashboard and verify theme switching through its local server and from the standalone HTML with the network disabled.
+
+## 4. Dashboard layout and navigation
+
+- [x] 4.1 Use neutral Dark mode surfaces and keep accent colors for labels, keywords, and controls. Verify contrast in both palettes.
+- [x] 4.2 Compact the project overview and align document content with the main frame. Verify that all four summary counts fit at narrow widths.
+- [x] 4.3 Link documents within active and archived changes and identify the current document. Verify the links with a keyboard and in standalone HTML.
+- [x] 4.4 Keep the header visible on scroll and offset in-page link targets. Verify that the header leaves document and section targets visible when it wraps at narrow widths.

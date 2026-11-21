@@ -10,6 +10,9 @@ The dashboard currently uses a light palette regardless of the browser’s appea
 - Default to Auto and follow the browser’s color preference, including changes while the dashboard is open.
 - Allow an explicit Light or Dark override and remember the mode across reloads when browser storage is available.
 - Apply both palettes to the overview, document views, and dashboard controls in the standalone HTML.
+- Use neutral Dark mode surfaces with accent colors for keywords, labels, links, and selection states.
+- Keep the overview compact and the dashboard header visible while scrolling.
+- Link documents within each change and align their content with the main dashboard frame.
 
 ## Capabilities
 
@@ -17,7 +20,7 @@ The dashboard currently uses a light palette regardless of the browser’s appea
 
 ### Modified Capabilities
 
-- `openspec-dashboard` gains appearance controls and supports light and dark palettes in its generated HTML.
+- `openspec-dashboard` gains appearance controls, light and dark palettes, and navigation between documents in each change.
 
 ## Impact
 
