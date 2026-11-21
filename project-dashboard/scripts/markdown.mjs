@@ -14,6 +14,31 @@ function inlineText(tokens) {
   }).join('');
 }
 
+function styleSpecificationHeading(heading, inline) {
+  const first = inline.children[0];
+  if (first?.type !== 'text') return;
+  const match = /^(Requirement|Scenario):(?=\s)/i.exec(first.content);
+  if (!match) return;
+
+  const kind = match[1].toLowerCase();
+  const label = new heading.constructor('specification_label', '', 0);
+  label.content = match[1];
+  first.content = first.content.slice(match[0].length);
+  inline.children.unshift(label, new heading.constructor('span_open', 'span', 1));
+  inline.children.push(new heading.constructor('span_close', 'span', -1));
+  heading.attrJoin('class', `specification-${kind}`);
+  return kind;
+}
+
+function styleScenarioStep(item, inline) {
+  const [open, word, close] = inline.children.filter(child => child.type !== 'text' || child.content);
+  if (open?.type !== 'strong_open' || word?.type !== 'text' || close?.type !== 'strong_close') return;
+  if (!/^(GIVEN|WHEN|THEN|AND|BUT)$/i.test(word.content)) return;
+
+  open.attrJoin('class', `scenario-keyword scenario-keyword-${word.content.toLowerCase()}`);
+  item.attrJoin('class', 'scenario-step');
+}
+
 export function parseDocument(document) {
   const environment = {};
   const tokens = markdown.parse(document.markdown, environment);
@@ -23,24 +48,36 @@ export function parseDocument(document) {
   let title;
   let completedTasks = 0;
   let totalTasks = 0;
+  let scenarioLevel = 0;
 
   for (const [index, token] of tokens.entries()) {
     if (token.type === 'heading_open') {
-      const headingText = inlineText(tokens[index + 1].children).trim();
+      const inline = tokens[index + 1];
+      const headingText = inlineText(inline.children).trim();
       const slug = slugger.slug(headingText);
       const headingId = `${id}--${slug}`;
       headings.set(slug, headingId);
       token.attrSet('id', headingId);
       token.attrSet('tabindex', '-1');
       title ??= headingText || undefined;
+
+      const kind = styleSpecificationHeading(token, inline);
+      const level = Number(token.tag.slice(1));
+      if (token.level === 0) {
+        if (kind === 'scenario') scenarioLevel = level;
+        else if (level <= scenarioLevel) scenarioLevel = 0;
+      }
     }
 
     if (token.type !== 'list_item_open' || tokens[index + 1]?.type !== 'paragraph_open') continue;
     const inline = tokens[index + 2];
+    if (inline?.type !== 'inline') continue;
+    if (scenarioLevel) styleScenarioStep(token, inline);
+
     const taskPattern = document.name.toLowerCase() === 'tasks.md'
       ? /^\[([^\]\n]*)\](?:[ \t]+|$)/
       : /^\[([ xX])\](?:[ \t]+|$)/;
-    const marker = inline?.type === 'inline' && inline.content.match(taskPattern);
+    const marker = inline.content.match(taskPattern);
     if (!marker) continue;
 
     const checked = /^x$/i.test(marker[1].trim());
@@ -108,6 +145,8 @@ function resolveLink(href, document, documents, groups, outputPath) {
 }
 
 markdown.renderer.rules.task_marker = (tokens, index) => tokens[index].content;
+markdown.renderer.rules.specification_label = (tokens, index) =>
+  `<span class="specification-label">${escapeHtml(tokens[index].content)}</span>`;
 markdown.renderer.rules.table_open = () => '<div class="table-scroll"><table>\n';
 markdown.renderer.rules.table_close = () => '</table></div>\n';
 markdown.renderer.rules.image = (tokens, index) => {

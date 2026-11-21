@@ -203,43 +203,217 @@ progress { width: 4rem; height: .6rem; accent-color: var(--accent); }
 .search-results a { padding-block: .4rem; }
 
 .document-view {
-  max-width: 64rem;
+  max-width: 55rem;
   margin-inline: auto;
-  padding: clamp(1rem, 4vw, 3rem);
+  padding: clamp(1.125rem, 4.5vw, 3.5rem);
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 1.25rem;
+  box-shadow: 0 .65rem 2rem #18223a0c;
 }
 
-.back-link { display: inline-block; padding-block: .25rem; font-weight: 650; }
-.document-location { margin-block: .45rem 1.1rem; overflow-wrap: anywhere; }
-.markdown { overflow-wrap: anywhere; }
-.markdown :is(h1, h2, h3, h4, h5, h6) { line-height: 1.2; scroll-margin-top: 1.25rem; }
-.markdown h1 { font-size: clamp(1.7rem, 5vw, 2.65rem); letter-spacing: -.035em; }
-.markdown h2 { padding-bottom: .3rem; border-bottom: 1px solid var(--border); }
+.back-link {
+  display: inline-block;
+  padding-block: .25rem;
+  font-size: .875rem;
+  font-weight: 650;
+}
+
+.document-location {
+  margin-block: .55rem 1.75rem;
+  padding-bottom: .85rem;
+  border-bottom: 1px solid var(--border);
+  font: .82rem/1.5 ui-monospace, SFMono-Regular, Consolas, monospace;
+  overflow-wrap: anywhere;
+}
+
+.markdown {
+  color: #2b3750;
+  font-size: 1rem;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.markdown > :first-child { margin-block-start: 0; }
+.markdown > :last-child { margin-block-end: 0; }
+
+.markdown :is(h1, h2, h3, h4, h5, h6) {
+  margin-block: 1.65em .55em;
+  color: var(--text);
+  font-weight: 700;
+  line-height: 1.25;
+  scroll-margin-top: 1.25rem;
+}
+
+.markdown h1 {
+  font-size: clamp(1.85rem, 5vw, 2.85rem);
+  letter-spacing: -.045em;
+}
+
+.markdown h2 {
+  padding-bottom: .45rem;
+  border-bottom: 1px solid var(--border);
+  font-size: clamp(1.35rem, 3vw, 1.65rem);
+  letter-spacing: -.025em;
+}
+
+.markdown h3 { font-size: 1.2rem; letter-spacing: -.015em; }
+.markdown h4 { font-size: 1.0625rem; }
+.markdown :is(h5, h6) { color: var(--muted); font-size: .95rem; }
+.markdown strong { color: var(--text); }
+
+.markdown :is(.specification-label, .scenario-keyword) {
+  display: inline-block;
+  border-radius: .35rem;
+  font-size: .75rem;
+  font-weight: 750;
+  line-height: 1.35;
+  letter-spacing: .045em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.markdown .specification-label {
+  padding: .18rem .5rem;
+  background: #e9eeff;
+  color: #2a448e;
+}
+
+.markdown .specification-requirement {
+  font-size: clamp(1.2rem, 3vw, 1.45rem);
+}
+
+.markdown .specification-requirement .specification-label {
+  display: table;
+  margin-bottom: .45rem;
+}
+
+.markdown .specification-scenario {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  align-items: start;
+  gap: .55rem;
+}
+
+.markdown .specification-scenario .specification-label {
+  background: #eeeafa;
+  color: #553b85;
+}
+
+.markdown :where(p, ul, ol, pre, blockquote, .table-scroll) { margin-block: 0 1.15rem; }
+.markdown :is(ul, ol) { padding-inline-start: 1.65rem; }
+.markdown li::marker { color: var(--accent); }
+.markdown li + li { margin-top: .35rem; }
+.markdown li > :is(ul, ol) { margin-block: .45rem 0; }
+.markdown li > p { margin-block: 0 .45rem; }
+.markdown li > :last-child { margin-block-end: 0; }
+
+.markdown .scenario-step {
+  position: relative;
+  margin-inline-start: -1.65rem;
+  padding: .55rem .75rem .55rem 4.5rem;
+  border: 1px solid #e2e8f4;
+  border-radius: .5rem;
+  background: #f8faff;
+  line-height: 1.55;
+  list-style: none;
+}
+
+.markdown .scenario-keyword {
+  position: absolute;
+  inset-block-start: .68rem;
+  inset-inline-start: .65rem;
+  width: 3.05rem;
+  padding-block: .12rem;
+  background: #e8edf7;
+  color: #405271;
+  text-align: center;
+}
+
+.markdown .scenario-keyword-when { background: #e1ecff; color: #20488f; }
+.markdown .scenario-keyword-then { background: #e1f2e9; color: #145841; }
+
+.markdown code { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
+
+.markdown :not(pre) > code {
+  padding: .12em .32em;
+  border: 1px solid #dae3f5;
+  border-radius: .28rem;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  background: #f0f4fc;
+  color: #233f84;
+  font-size: .875em;
+}
+
+.markdown a > code { color: inherit; }
 .markdown :is(pre, .table-scroll) { overflow-x: auto; }
-.markdown pre { padding: 1rem; border-radius: .55rem; background: #f0f3fa; }
-.markdown :not(pre) > code { padding: .12em .3em; border-radius: .2rem; background: #f0f3fa; }
-.markdown table { border-collapse: collapse; }
-.markdown td, .markdown th { padding: .45rem .65rem; border: 1px solid var(--border); }
-.markdown th { background: var(--tint); }
-.markdown blockquote { margin-inline: 0; padding-left: .9rem; border-left: .2rem solid var(--border); }
-.markdown hr { border: 0; border-top: 1px solid var(--border); }
-.markdown li + li { margin-top: .25rem; }
-.markdown li.task-item { list-style: none; }
+
+.markdown pre {
+  padding: .9rem 1.1rem;
+  border-radius: .65rem;
+  background: #1c263d;
+  color: #eef3ff;
+  font: .875rem/1.65 ui-monospace, SFMono-Regular, Consolas, monospace;
+  overflow-wrap: normal;
+  tab-size: 4;
+}
+
+.markdown .table-scroll {
+  border: 1px solid var(--border);
+  border-radius: .65rem;
+}
+
+.markdown table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .9375rem;
+  line-height: 1.5;
+  overflow-wrap: normal;
+}
+
+.markdown :is(th, td) {
+  padding: .65rem .85rem;
+  border-bottom: 1px solid var(--border);
+  text-align: start;
+  vertical-align: top;
+}
+
+.markdown th { background: var(--tint); color: var(--text); }
+.markdown tbody tr:nth-child(even) { background: #f7f9fd; }
+.markdown tbody tr:last-child td { border-bottom: 0; }
+
+.markdown blockquote {
+  margin-inline: 0;
+  padding: .8rem 1rem;
+  border-inline-start: .22rem solid #6f86d3;
+  border-radius: .35rem;
+  background: #f3f6ff;
+  color: #364568;
+}
+
+.markdown blockquote > :last-child { margin-block-end: 0; }
+.markdown hr { margin-block: 1.75rem; border: 0; border-top: 1px solid var(--border); }
+
+.markdown li.task-item {
+  position: relative;
+  list-style: none;
+}
 
 .task-marker {
-  display: inline-grid;
+  position: absolute;
+  inset-block-start: .37em;
+  inset-inline-start: -1.45rem;
+  display: grid;
   place-items: center;
-  width: 1em;
-  height: 1em;
-  margin-right: .5em;
-  border: 1px solid #74829e;
-  border-radius: .2em;
-  vertical-align: -.1em;
+  width: .95rem;
+  height: .95rem;
+  border: 1.5px solid #74829e;
+  border-radius: .25rem;
+  background: var(--surface);
 }
 
-.task-marker-checked { background: var(--accent); border-color: var(--accent); }
+.task-marker-checked { background: #17654a; border-color: #17654a; }
 .task-marker-checked::after {
   content: '';
   width: .25em;
