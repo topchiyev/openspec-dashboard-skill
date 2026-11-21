@@ -1,16 +1,16 @@
-# OpenSpec Dashboard
+# openspec-dashboard Specification
 
 ## Purpose
 
 Give users a portable, readable overview of a project's OpenSpec documents and task progress that they can regenerate on demand.
 
-## ADDED Requirements
+## Requirements
 
 ### Requirement: Generate a dashboard for the selected project
 The skill SHALL read the selected project's `openspec/` directory and generate a standalone HTML file. It SHALL use the configured repository output path, with `openspec/dashboard.html` as the default.
 
 #### Scenario: Create the first dashboard
-- **WHEN** the user requests a dashboard for a project with an `openspec/` directory and no dashboard exists
+- **WHEN** the user asks to generate a dashboard file for a project with an `openspec/` directory and no dashboard exists
 - **THEN** the skill SHALL generate the HTML file and return its location
 
 #### Scenario: Use a repository-specific output path
@@ -44,7 +44,7 @@ The dashboard SHALL provide a clear visual hierarchy and readable layouts on des
 - **THEN** the dashboard SHALL show matching entries that the user can open
 
 ### Requirement: Refresh the dashboard on request
-The skill SHALL support explicit update requests and rebuild the dashboard at the same configured path from the current OpenSpec files. On success, it SHALL return the file's location. If generation fails, it SHALL report the error and preserve the previous dashboard.
+The skill SHALL support explicit update requests and rebuild the dashboard at the same configured path from the current OpenSpec files. On success, it SHALL return the file's location or its existing server URL. If generation fails, it SHALL report the error and preserve the previous dashboard.
 
 #### Scenario: Refresh after manual edits
 - **WHEN** a user edits OpenSpec files and asks to update the dashboard
@@ -54,3 +54,30 @@ The skill SHALL support explicit update requests and rebuild the dashboard at th
 #### Scenario: Generation fails during refresh
 - **WHEN** an update cannot complete
 - **THEN** the skill SHALL report the failure and leave the previous dashboard available
+
+### Requirement: Serve the dashboard on request
+When a user asks to see, open, or serve the selected project's dashboard, the skill SHALL return the URL of an existing dashboard server for that project or start one when needed. The server SHALL serve only the configured dashboard HTML over HTTP on loopback. Serving an existing dashboard SHALL require only Node.js.
+
+#### Scenario: Open a dashboard that is already served
+- **WHEN** the user asks to see the dashboard and its server is running
+- **THEN** the skill SHALL return that server's URL
+
+#### Scenario: Open a dashboard with no server
+- **WHEN** the user asks to see the dashboard and its server is stopped
+- **THEN** the skill SHALL generate the dashboard if the HTML is missing, start the server, and return its URL
+
+#### Scenario: View from another device
+- **WHEN** the user is on another device
+- **THEN** the skill SHALL return the environment's forwarded URL when available or identify the server URL as local to the machine running it
+
+### Requirement: Check and stop the selected project's server
+The skill SHALL provide status and stop commands scoped to the selected project. Stopping an already stopped dashboard server SHALL report that it is stopped.
+
+#### Scenario: Check the server status
+- **WHEN** the user asks whether the dashboard is being served
+- **THEN** the skill SHALL return the active URL or report that the server is stopped
+
+#### Scenario: Stop an active server
+- **WHEN** the user asks to stop a running dashboard server
+- **THEN** the skill SHALL stop that project's server and report the result
+- **AND** dashboards served for other projects SHALL remain available

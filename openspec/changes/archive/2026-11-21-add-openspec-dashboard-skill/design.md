@@ -11,6 +11,7 @@ This is the first feature in the OpenSpec Dashboard repository. The input is the
 - Make a single invocation useful from both a skill-enabled Codex session and a terminal.
 - Keep the dashboard, its document navigation, and its search usable from a local file.
 - Give each project a predictable output path and preserve its last usable dashboard if generation fails.
+- Return a working dashboard URL on request and reuse an active server for the project.
 
 **Non-Goals**
 
@@ -38,6 +39,12 @@ Use a clear project heading and a compact summary, then show active changes with
 ### Replace the output after a successful build
 
 Render to a temporary file alongside the destination and replace the destination only after the complete file has been written. Report the path after success and report the cause when generation fails. The skill can then direct the user to reopen or reload the same file.
+
+### Serve the configured HTML on demand
+
+The skill routes requests to view the dashboard to a Node.js HTTP server. The server serves the configured HTML at its root URL and reads the file on each request so a refresh is visible at the same URL. If the file is missing at startup, the server runs the bundled generator. The HTTP listener binds to loopback and uses an available port by default. Callers can select a fixed port for an existing forwarding setup.
+
+The server runs independently of the command that started it. A local control socket keyed by the canonical project root lets later commands discover the same URL or stop that project's server. Concurrent view requests reuse the same listener. The control socket stays separate from the HTTP listener that serves the dashboard.
 
 ## Risks / Trade-offs
 

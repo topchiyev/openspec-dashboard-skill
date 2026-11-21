@@ -16,3 +16,8 @@
 
 - [x] 3.1 Package the generator and write the skill instructions for creating and updating a dashboard, including the project path convention and usage from a user-level installation. Verify that one installed skill can generate dashboards for two separate repositories.
 - [x] 3.2 Verify the complete refresh workflow from a project chat. Change a task state and add or remove a Markdown file, ask the skill to update the dashboard, and reopen the returned HTML path to confirm the latest content.
+
+## 4. Local dashboard serving
+
+- [x] 4.1 Add a Node.js server and route requests to view the dashboard through the skill. Verify generation when the file is missing, serving existing HTML without installed dependencies, and refreshing the file at the same URL.
+- [x] 4.2 Add status and stop commands for the selected project. Verify URL reuse during concurrent starts, isolation between repositories, fixed ports, and recovery from a stale control socket.
