@@ -1,6 +1,6 @@
 ---
 name: openspec-dashboard
-description: Generate, refresh, show, serve, or stop the dashboard for an OpenSpec project. Use when the user asks to see the OpenSpec Dashboard or browse a project's specifications, change documents, or task progress through the dashboard.
+description: Generate, refresh, show, serve, or stop the dashboard for an OpenSpec project. Use for dashboard requests and after you modify a project's OpenSpec specifications, changes, task status, or archives.
 ---
 
 # OpenSpec Dashboard
@@ -24,6 +24,8 @@ Link the URL printed by the command. It reuses an active server for this project
 Use `status` in place of `serve` to check whether the project's server is running. Use `stop` to stop it. Give both commands the same `--project-root`.
 
 ## Generate or refresh
+
+After you create, edit, or archive OpenSpec changes, update task checkboxes, or modify specifications, regenerate the project's dashboard once at the end of that batch of edits. Do this before reporting completion, even if the user did not separately request a refresh.
 
 ```sh
 node /path/to/openspec-dashboard/scripts/generate-dashboard.mjs --project-root /path/to/project
