@@ -7,6 +7,8 @@ description: Generate, refresh, show, serve, or stop the dashboard for an OpenSp
 
 Determine the project root from the current repository or the project the user named. Use its applicable `AGENTS.md` instructions to find the dashboard output path. The default is `openspec/dashboard.html`. Resolve the bundled scripts relative to this skill and use Node.js 20.19 or newer.
 
+Keep generated dashboard HTML out of Git. Before generating or serving it in a Git repository, check whether the output path is ignored with `git check-ignore`. For an untracked output that needs an ignore rule, add a pattern anchored to the repository root for that exact file to the local exclude file (`git rev-parse --git-path info/exclude`). Keep generated HTML out of staging and commits. If the dashboard is already tracked, tell the user and get approval before untracking it.
+
 ## Show or serve
 
 When the user asks to see, open, or serve the dashboard, use the bundled server.
