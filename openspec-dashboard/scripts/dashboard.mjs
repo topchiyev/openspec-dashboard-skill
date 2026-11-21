@@ -97,6 +97,7 @@ export function renderDashboard(project, source) {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
   <title>${projectName} · OpenSpec Dashboard</title>
+  <script>${asset('theme.js')}</script>
   <style>${asset('dashboard.css')}</style>
 </head>
 <body>
@@ -109,6 +110,12 @@ export function renderDashboard(project, source) {
         <a href="#specifications">Specs</a>
         <a href="#archive">Archive</a>
       </nav>
+      <fieldset class="theme-switch" id="theme-switch">
+        <legend>Color theme</legend>
+        <label><input type="radio" name="theme" value="auto" checked><span>Auto</span></label>
+        <label><input type="radio" name="theme" value="light"><span>Light</span></label>
+        <label><input type="radio" name="theme" value="dark"><span>Dark</span></label>
+      </fieldset>
     </div>
   </header>
   <main class="frame" id="main" tabindex="-1">
