@@ -2,7 +2,7 @@
 
 ## Context
 
-This is the first feature in the Project Dashboard Skill repository. The input is the selected project's repository-local `openspec/` tree. The skill installation can be shared across projects. Each generated HTML file belongs to the project whose documents it contains.
+This is the first feature in the OpenSpec Dashboard repository. The input is the selected project's repository-local `openspec/` tree. The skill installation can be shared across projects. Each generated HTML file belongs to the project whose documents it contains.
 
 ## Goals / Non-Goals
 
