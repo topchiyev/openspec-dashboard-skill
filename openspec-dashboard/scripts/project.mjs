@@ -64,28 +64,52 @@ function readDocument(root, path) {
   };
 }
 
-function readMarkdownTree(root, directory) {
+function readGroupContents(project, directory, includeChangeDates) {
   const documents = [];
-  for (const entry of readDirectory(directory)) {
-    const path = join(directory, entry.name);
-    if (entry.isDirectory()) {
-      documents.push(...readMarkdownTree(root, path));
-    } else if (entry.isFile() && extname(entry.name).toLowerCase() === '.md') {
-      documents.push(readDocument(root, path));
+  const metadataPath = join(directory, '.openspec.yaml');
+  let lastModified;
+  let metadata;
+
+  function visit(directory) {
+    for (const entry of readDirectory(directory)) {
+      const path = join(directory, entry.name);
+      if (entry.isDirectory()) {
+        visit(path);
+        continue;
+      }
+      if (!entry.isFile()) continue;
+
+      if (extname(entry.name).toLowerCase() === '.md') {
+        documents.push(readDocument(project.root, path));
+      }
+      if (!includeChangeDates || path === project.output) continue;
+
+      try {
+        const file = lstatSync(path, { throwIfNoEntry: false });
+        if (!file?.isFile()) continue;
+        if (Number.isFinite(file.mtimeMs) && file.mtimeMs > (lastModified ?? -Infinity)) {
+          lastModified = file.mtimeMs;
+        }
+        if (path === metadataPath) metadata = readFileSync(path, 'utf8');
+      } catch {
+        // Dates are optional if a file's metadata cannot be read.
+      }
     }
   }
-  return documents;
+
+  visit(directory);
+  return { documents, lastModified, metadata };
 }
 
-function readGroups(project, directory, excludeArchive = false) {
+function readGroups(project, directory, activeChanges = false) {
   return readDirectory(directory, true)
-    .filter(entry => entry.isDirectory() && !(excludeArchive && entry.name === 'archive'))
+    .filter(entry => entry.isDirectory() && !(activeChanges && entry.name === 'archive'))
     .map(entry => {
       const path = join(directory, entry.name);
       return {
         name: entry.name,
         path: relative(project.root, path).split(sep).join('/'),
-        documents: readMarkdownTree(project.root, path)
+        ...readGroupContents(project, path, activeChanges)
       };
     });
 }

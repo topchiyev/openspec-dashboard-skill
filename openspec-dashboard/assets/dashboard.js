@@ -1,4 +1,5 @@
 const topbar = document.querySelector('.topbar');
+const changeNavigation = document.getElementById('change-navigation');
 const overview = document.getElementById('overview');
 const sections = document.getElementById('dashboard-sections');
 const search = document.getElementById('document-search');
@@ -54,14 +55,20 @@ function updateView() {
   }
 
   const nextDocument = target?.closest('[data-document]');
-  if (activeDocument && activeDocument !== nextDocument) activeDocument.hidden = true;
-  activeDocument = nextDocument;
+  if (activeDocument !== nextDocument) {
+    if (activeDocument) activeDocument.hidden = true;
+    activeDocument = nextDocument;
+    const navigation = activeDocument?.querySelector('[data-change-navigation]');
+    changeNavigation.replaceChildren(navigation?.content.cloneNode(true) ?? '');
+    changeNavigation.hidden = !navigation;
+  }
   overview.hidden = Boolean(activeDocument);
   if (activeDocument) activeDocument.hidden = false;
   if (target && sections.contains(target) && sections.hidden) {
     search.value = '';
     updateSearch();
   }
+  updateScrollPadding();
   if (target) {
     target.focus({ preventScroll: true });
     target.scrollIntoView();
@@ -70,7 +77,6 @@ function updateView() {
 
 search.addEventListener('input', updateSearch);
 window.addEventListener('hashchange', updateView);
-updateScrollPadding();
 new ResizeObserver(updateScrollPadding).observe(topbar);
 updateSearch();
 updateView();

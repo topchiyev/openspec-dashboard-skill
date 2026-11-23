@@ -1,13 +1,19 @@
 ---
 name: openspec-dashboard
 description: Generate, refresh, show, serve, or stop the dashboard for an OpenSpec project. Use for dashboard requests and after you modify a project's OpenSpec specifications, changes, task status, or archives.
+metadata:
+  version: "0.1.0"
 ---
 
 # OpenSpec Dashboard
 
-Determine the project root from the current repository or the project the user named. Use its applicable `AGENTS.md` instructions to find the dashboard output path. The default is `openspec/dashboard.html`. Resolve the bundled scripts relative to this skill and use Node.js 20.19 or newer.
+Determine the project root from the current repository or the project the user named. Use its applicable project instructions for the dashboard output path. The default is `openspec/dashboard.html`. Resolve the scripts relative to the directory containing this `SKILL.md` and run them with Node.js 20.19 or newer.
 
 Keep generated dashboard HTML out of Git. Before generating or serving it in a Git repository, check whether the output path is ignored with `git check-ignore`. For an untracked output that needs an ignore rule, add a pattern anchored to the repository root for that exact file to the local exclude file (`git rev-parse --git-path info/exclude`). Keep generated HTML out of staging and commits. If the dashboard is already tracked, tell the user and get approval before untracking it.
+
+## Install
+
+For an installation request, use the skills directory for the agent the user names. Default to the current agent when the user leaves the target unspecified. Install for multiple agents only when the user explicitly requests those targets.
 
 ## Show or serve
 
@@ -33,4 +39,4 @@ node /path/to/openspec-dashboard/scripts/generate-dashboard.mjs --project-root /
 
 Pass `--output` for a configured dashboard path. Link the generated HTML or, if the server is running, its existing URL. Reloading the page shows the regenerated HTML. If the command fails, report the cause from its output.
 
-For generation, install dependencies once by running `npm ci --ignore-scripts` in the skill directory. Serving existing HTML uses only Node.js. For a user-level Codex installation, place or link the whole `openspec-dashboard` directory in a user skill directory such as `~/.agents/skills/`.
+If generation dependencies are missing, run `npm ci --ignore-scripts` from the bundled skill directory. Serving existing HTML uses only Node.js.

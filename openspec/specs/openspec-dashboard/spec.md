@@ -14,7 +14,7 @@ The skill SHALL read the selected project's `openspec/` directory and generate a
 - **THEN** the skill SHALL generate the HTML file and return its location
 
 #### Scenario: Use a repository-specific output path
-- **WHEN** the project's applicable `AGENTS.md` instructions specify a dashboard output path within the repository
+- **WHEN** the applicable project instructions specify a dashboard output path within the repository
 - **THEN** the skill SHALL write the dashboard to that path and return its location
 
 #### Scenario: Project has no OpenSpec directory
@@ -58,6 +58,23 @@ The dashboard SHALL provide a clear visual hierarchy and readable layouts on des
 #### Scenario: View the overview on a narrow screen
 - **WHEN** the overview is displayed on a narrow screen
 - **THEN** the header SHALL keep all four summary counts readable within the viewport width
+
+### Requirement: Order active changes and show their creation dates
+The dashboard SHALL list active changes with at least one completed task first. Within each group, it SHALL sort changes by most recent file modification time, using the recorded creation date when no modification time is available. It SHALL show the creation date beside each active change with a valid date in its OpenSpec metadata.
+
+#### Scenario: Review changes with and without completed tasks
+- **WHEN** active changes with and without completed tasks are present
+- **THEN** every change with at least one completed task SHALL appear before the changes with zero completed tasks
+- **AND** each group SHALL list the most recently modified changes first
+
+#### Scenario: Review an active change with missing dates
+- **WHEN** an active change has no available file modification time
+- **THEN** the dashboard SHALL sort it within its group by creation date when available
+- **AND** changes with neither date SHALL follow dated changes in that group
+
+#### Scenario: Review the dates shown in the active changes list
+- **WHEN** the user views the active changes list
+- **THEN** each active change with a valid recorded creation date SHALL show that date beside its entry
 
 ### Requirement: Refresh the dashboard on request
 The skill SHALL support explicit update requests and rebuild the dashboard at the same configured path from the current OpenSpec files. On success, it SHALL return the file's location or its existing server URL. If generation fails, it SHALL report the error and preserve the previous dashboard.
@@ -135,20 +152,25 @@ The dashboard SHALL save the selected mode in the browser when storage is availa
 - **THEN** the dashboard SHALL apply the selected palette for the current page
 
 ### Requirement: Keep the dashboard header visible
-The dashboard SHALL keep its top bar, including section links and the theme switch, visible at the top of the viewport as the user scrolls. It SHALL account for the header height when navigating to an in-page target.
+The dashboard SHALL keep its top bar, including section links, the theme switch, and any change navigation, visible at the top of the viewport as the user scrolls. It SHALL account for the full header height when navigating to an in-page target.
 
 #### Scenario: Navigate with a sticky header
 - **WHEN** the user follows a link to a dashboard section, document, or heading
 - **THEN** the target SHALL be visible below the header at desktop and narrow widths
 
 ### Requirement: Navigate within a change
-The dashboard SHALL lay out the change navigation and page content in the main content frame and show the file path for Markdown documents. The header on pages of active and archived changes SHALL order the available links as Proposal, Delta specs, Design, and Tasks. The links SHALL use anchors within the standalone dashboard.
+The dashboard SHALL show the file path and content for Markdown documents in the main content frame. On pages of active and archived changes, the sticky dashboard header SHALL show the available links in the order Proposal, Delta specs, Design, and Tasks. The links SHALL use anchors within the standalone dashboard.
 
 #### Scenario: Open a change with multiple documents
 - **WHEN** the user opens a page of an active or archived change containing multiple documents
 - **THEN** the change header SHALL show the available links in the order Proposal, Delta specs, Design, and Tasks
 - **AND** the header SHALL indicate the current section, including Delta specs while viewing an individual delta spec
 - **AND** following a link SHALL open its target in the same dashboard HTML
+
+#### Scenario: Switch subpages while reading a change
+- **WHEN** the user scrolls down a page of an active or archived change
+- **THEN** the subpage links SHALL stay visible in the sticky dashboard header
+- **AND** navigating to a document outside the change or returning to the overview SHALL display the header appropriate to that view
 
 #### Scenario: Open a change before its proposal is written
 - **WHEN** the user follows the overview link for a change without a proposal document

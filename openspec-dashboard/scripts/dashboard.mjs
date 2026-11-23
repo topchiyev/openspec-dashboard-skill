@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { relative, sep } from 'node:path';
+import { isAlias, parseDocument as parseYamlDocument } from 'yaml';
 import { documentId, escapeHtml, fragment, parseDocument, renderDocument } from './markdown.mjs';
 import { outputMarker } from './project.mjs';
 
@@ -29,6 +30,26 @@ function taskProgress(tasks, label = 'Tasks complete') {
   </div>`;
 }
 
+function creationDate(metadata) {
+  if (!metadata) return;
+  const document = parseYamlDocument(metadata, { schema: 'core' });
+  if (document.errors.length) return;
+  const node = document.get('created', true);
+  const created = (isAlias(node) ? node.resolve(document) : node)?.value;
+  if (typeof created !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(created)) return;
+
+  const date = new Date(created);
+  if (Number.isFinite(date.valueOf()) && date.toISOString().slice(0, 10) === created) return created;
+}
+
+function compareActiveChanges(first, second) {
+  const firstStarted = Number((first.tasks?.completedTasks ?? 0) > 0);
+  const secondStarted = Number((second.tasks?.completedTasks ?? 0) > 0);
+  return secondStarted - firstStarted
+    || (second.lastActivity ?? -Infinity) - (first.lastActivity ?? -Infinity)
+    || first.name.localeCompare(second.name, 'en');
+}
+
 function section(id, title, content, emptyText) {
   return `<section class="dashboard-section" id="${id}" aria-labelledby="${id}-title" tabindex="-1">
     <h2 id="${id}-title">${title}</h2>
@@ -45,9 +66,11 @@ function changeNavigation(change, pageId, sectionId = pageId) {
     const current = link.id === sectionId ? ` aria-current="${link.id === pageId ? 'page' : 'location'}"` : '';
     return `<li><a href="${fragment(link.id)}"${current}>${link.title}</a></li>`;
   });
-  return `<nav class="change-navigation" aria-label="Change documents">
+  return `<template data-change-navigation>
+      <nav aria-label="Change documents">
         <ul class="document-list">${links.join('\n')}</ul>
-      </nav>`;
+      </nav>
+    </template>`;
 }
 
 function pageMarkup({ id, title, path, navigation = '', progress = '', content }) {
@@ -55,11 +78,11 @@ function pageMarkup({ id, title, path, navigation = '', progress = '', content }
   return `
     <article class="document-view" id="${id}" data-document${escapedPath ? ` data-path="${escapedPath}"` : ''}
       hidden tabindex="-1" aria-label="${escapeHtml(title)}">
-      <header class="document-header">
-        ${escapedPath ? `<p class="document-location">${escapedPath}</p>` : ''}
-        ${navigation}
+      ${navigation}
+      ${escapedPath ? `<header class="document-header">
+        <p class="document-location">${escapedPath}</p>
         ${progress}
-      </header>
+      </header>` : ''}
       <div class="markdown">${content}</div>
     </article>`;
 }
@@ -113,7 +136,9 @@ export function renderDashboard(project, source) {
       { title: 'Design', id: design?.id },
       { title: 'Tasks', id: tasks?.id }
     ].filter(link => link.id);
-    const change = { id, name: group.name, proposal, proposalId, tasks, deltaId, deltaSpecs, links };
+    const created = creationDate(group.metadata);
+    const lastActivity = group.lastModified ?? (created ? Date.parse(created) : undefined);
+    const change = { id, name: group.name, proposal, proposalId, tasks, deltaId, deltaSpecs, links, created, lastActivity };
     groups.set(group.path, id);
     if (deltaId) groups.set(deltaPath, deltaId);
     for (const document of changeDocuments) changeByDocument.set(document, change);
@@ -130,7 +155,7 @@ export function renderDashboard(project, source) {
       specificationLinks.push(linkItem(addDocument(document), index === 0 ? id : undefined));
     }
   }
-  const changes = source.changes.map(addChange);
+  const changes = source.changes.map(addChange).sort(compareActiveChanges);
   const archives = source.archives.map(addChange);
   const outputPath = relative(project.root, project.output).split(sep).join('/');
   const projectName = escapeHtml(project.name);
@@ -139,8 +164,12 @@ export function renderDashboard(project, source) {
   const completedTasks = taskDocuments.reduce((total, document) => total + document.completedTasks, 0);
   const totalTasks = taskDocuments.reduce((total, document) => total + document.totalTasks, 0);
   const changeLink = (change, detail) => linkItem({ id: change.proposalId, title: change.name }, change.id, detail);
-  const activeChangeLinks = changes.map(change =>
-    changeLink(change, taskProgress(change.tasks, `Tasks complete for ${change.name}`)));
+  const activeChangeLinks = changes.map(change => {
+    const created = change.created
+      ? `<span class="change-created">Created <time datetime="${change.created}">${change.created}</time></span>`
+      : '';
+    return changeLink(change, taskProgress(change.tasks, `Tasks complete for ${change.name}`) + created);
+  });
   const documentViews = Array.from(documents.values(), document => {
     const change = changeByDocument.get(document);
     const sectionId = change?.deltaSpecs.includes(document) ? change.deltaId : document.id;
@@ -182,6 +211,7 @@ export function renderDashboard(project, source) {
         <label><input type="radio" name="theme" value="dark"><span>Dark</span></label>
       </fieldset>
     </div>
+    <div id="change-navigation" class="frame change-navigation" hidden></div>
   </header>
   <main class="frame" id="main" tabindex="-1">
     <div id="overview" tabindex="-1">
