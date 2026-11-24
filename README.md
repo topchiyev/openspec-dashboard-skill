@@ -4,22 +4,23 @@ An [Agent Skills](https://agentskills.io/specification) package that turns a pro
 
 ## Install
 
-Choose the agent and scope you want to install for. When an agent installs the skill for you, it uses its own skills directory by default. It installs to multiple agent directories only when you explicitly request those destinations.
+Install the skill in the target project's repository by default, using the project skills directory for the agent you use. An agent installs for the current or named agent, and uses a personal directory or multiple agent destinations only when you explicitly request them. If the intended repository, agent, or scope is still unclear, the agent asks you to clarify before installing.
 
-Use Node.js 20.19 or newer and npm in the environment where your agent runs commands. On macOS or Linux, clone the repository and install the generator dependencies.
-
-```sh
-skill_repo="$HOME/openspec-dashboard-skill"
-git clone https://github.com/topchiyev/openspec-dashboard-skill.git "$skill_repo"
-(cd "$skill_repo/openspec-dashboard" && npm ci --ignore-scripts)
-```
-
-Set `skills_dir` to the single destination you chose, then link the complete `openspec-dashboard` folder there. The example uses the Codex personal directory. For a Claude Code personal install, set `skills_dir="$HOME/.claude/skills"` in its place.
+Use Node.js 20.19 or newer and npm in the environment where your agent runs commands. On macOS or Linux, run the example below from the root of the target project. It uses Codex's project directory. For Claude Code, set `skill_dir=".claude/skills/openspec-dashboard"` instead.
 
 ```sh
-skills_dir="$HOME/.agents/skills"
-mkdir -p "$skills_dir"
-ln -s "$skill_repo/openspec-dashboard" "$skills_dir/openspec-dashboard"
+(
+  set -e
+  skill_dir=".agents/skills/openspec-dashboard"
+  skill_source="$(mktemp -d)"
+  trap 'rm -r -- "$skill_source"' EXIT
+  git clone --depth 1 https://github.com/topchiyev/openspec-dashboard-skill.git "$skill_source"
+  mkdir -p "$(dirname "$skill_dir")"
+  mkdir "$skill_dir"
+  cp -R "$skill_source/openspec-dashboard/." "$skill_dir/"
+  cd "$skill_dir"
+  npm ci --ignore-scripts
+)
 ```
 
 ### Installation path reference
@@ -44,9 +45,9 @@ Use this table to look up the parent directory for your chosen agent and scope. 
 | Amp | `~/.config/agents/skills/` | `.agents/skills/` | [Amp](https://ampcode.com/docs/customize/skills) |
 | Goose | `~/.agents/skills/` | `.agents/skills/` | [Goose](https://github.com/aaif-goose/goose/blob/main/documentation/docs/guides/context-engineering/using-skills.md) |
 
-For a shared repository installation or an agent that cannot follow symlinks, copy the full skill folder from a clean checkout and run `npm ci --ignore-scripts` inside the copy. Each installation needs the bundled scripts, assets, and package files. Install the skill and its dependencies in the agent's remote workspace if it runs on another machine.
+To share the installation with your team, commit the copied skill files and keep `node_modules/` out of Git. Run `npm ci --ignore-scripts` from the installed skill directory in each local or remote environment that generates dashboards.
 
-When upgrading a linked installation, stop any running dashboard servers, update the checkout, and rerun `npm ci --ignore-scripts` in the skill directory.
+When upgrading, update the bundle in the project's skills directory and rerun `npm ci --ignore-scripts` there.
 
 ## Use from an agent
 
@@ -62,10 +63,10 @@ To configure a different output path, put it in the project instructions read by
 
 ## Use from a terminal
 
-Run these commands from the root of an OpenSpec project. Set `skill_dir` to the bundled folder in your checkout or the installed skill directory.
+Run these commands from the root of an OpenSpec project. Adjust `skill_dir` to match the installation path for your agent, or point it to the bundled folder in a source checkout.
 
 ```sh
-skill_dir="$HOME/openspec-dashboard-skill/openspec-dashboard"
+skill_dir="$PWD/.agents/skills/openspec-dashboard"
 
 node "$skill_dir/scripts/generate-dashboard.mjs" --project-root "$PWD"
 node "$skill_dir/scripts/serve-dashboard.mjs" serve --project-root "$PWD"

@@ -2,7 +2,7 @@
 name: openspec-dashboard
 description: Generate, refresh, show, serve, or stop the dashboard for an OpenSpec project. Use for dashboard requests and after you modify a project's OpenSpec specifications, changes, task status, or archives.
 metadata:
-  version: "0.1.0"
+  version: "0.1.1"
 ---
 
 # OpenSpec Dashboard
@@ -13,7 +13,9 @@ Keep generated dashboard HTML out of Git. Before generating or serving it in a G
 
 ## Install
 
-For an installation request, use the skills directory for the agent the user names. Default to the current agent when the user leaves the target unspecified. Install for multiple agents only when the user explicitly requests those targets.
+For an installation request, place the full skill folder in the target repository's project skills directory for the agent the user names. Default to the current agent when the user leaves the agent unspecified. Use a personal skills directory or install for multiple agents only when the user explicitly requests that scope or those targets.
+
+If the intended repository, agent, or scope remains unclear after applying these defaults, ask the user to clarify before installing.
 
 ## Show or serve
 
